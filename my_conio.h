@@ -163,7 +163,7 @@ void _cputs(const char* str)
 	wrefresh(aktywneOkno);
 }
 
-char* cgets(char* str)
+char* _cgets(char* str)
 { // nie wiem dokladnie jak dziala orginalna f. cgets bo nie mam
   // do niej referencji..
 	if(str == NULL || *str == 0)
@@ -189,7 +189,7 @@ char* cgets(char* str)
 	return str+2;
 }
 
-void clreol()
+void _clreol()
 {
 	wclrtoeol(aktywneOkno);
 	wrefresh(aktywneOkno);
@@ -220,7 +220,7 @@ int _cprintf(const char *fmt, ...)
 	return i;
 }
 
-int cscanf(const char *fmt, ...)
+int _cscanf(const char *fmt, ...)
 {
 	if(!zainicjowane) inicjuj();
 	
@@ -386,7 +386,7 @@ void window(int xup, int yup, int xdown, int ydown)
 		{
 			aktywneOkno = okienka[i].okno;
 			istnieje = TRUE;
-			clrscr();
+			_clrscr();
 		}
 	}
 	

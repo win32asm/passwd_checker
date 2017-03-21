@@ -1,4 +1,4 @@
-#include <iostream>
+#include <string>
 #include <cmath>
 
 #ifndef _WIN32_WINNT
@@ -22,11 +22,8 @@ void _clrscr()
 #endif
 
 using std::string;
-using std::cin;
-using std::cout;
-using std::endl;
 
-void analyze_password(string password);
+void analyze_password(const string &password);
 
 int main() {
     bool ask_pass = true;
@@ -46,7 +43,7 @@ int main() {
             if (ch=='\b' && passwd.length() != 0) {
                 passwd.erase(passwd.begin() + ( passwd.length() - 1));
             } else if (ch == '\0') {
-                ch = (char) getch(); // ignore next char ?
+                ch = (char) _getch(); // ignore next char ?
                 if (ch == 0x39) { // backspace?
                     passwd.erase(passwd.begin() + ( passwd.length() - 1));
                 } else {
@@ -79,7 +76,7 @@ int main() {
     return 0;
 }
 
-void analyze_password(string password) {
+void analyze_password(const string &password) {
     _cprintf("Password length: %i characters\n", password.length());
 
     bool cat_num = false, cat_sym = false, cat_upper = false, cat_lower = false;
