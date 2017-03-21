@@ -79,11 +79,11 @@
 
 //int (* wsk_f)(void) = getch;
 
-#undef getch
-#define getch CURSgetch
+#undef _getch
+#define _getch CURSgetch
 
-#undef getche
-#define getche CURSgetche
+#undef _getche
+#define _getche CURSgetche
 
 
 void inicjuj();
@@ -157,7 +157,7 @@ int simple_strlen(const char* str)
 	return p-str;
 }
 
-void cputs(const char* str)
+void _cputs(const char* str)
 {
 	waddstr(aktywneOkno, str);
 	wrefresh(aktywneOkno);
@@ -195,7 +195,7 @@ void clreol()
 	wrefresh(aktywneOkno);
 }
 
-void clrscr()
+void _clrscr()
 {
 	if(!zainicjowane) inicjuj();
 	wbkgd(aktywneOkno, COLOR_PAIR(biezacaPara));
@@ -203,7 +203,7 @@ void clrscr()
 	wclear(aktywneOkno);
 }
 
-int cprintf(const char *fmt, ...)
+int _cprintf(const char *fmt, ...)
 // czysty hardcore ;-)
 {
 	if(!zainicjowane) inicjuj();
@@ -220,7 +220,7 @@ int cprintf(const char *fmt, ...)
 	return i;
 }
 
-int cscanf(char *fmt, ...)
+int cscanf(const char *fmt, ...)
 {
 	if(!zainicjowane) inicjuj();
 	
@@ -280,7 +280,7 @@ int gotoxy(int x, int y)
 	return 0;
 }
 
-int kbhit()
+int _kbhit()
 {
 	int znak;
 	wtimeout(aktywneOkno, 0);
@@ -292,7 +292,7 @@ int kbhit()
 	return 1;
 }
 
-int putch(int znak)
+int _putch(int znak)
 {
 	wechochar(aktywneOkno,znak);
 }
