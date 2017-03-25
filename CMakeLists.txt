@@ -3,7 +3,7 @@ project(passwd_checker)
 
 set(CMAKE_CXX_STANDARD 14)
 
-set(SOURCE_FILES main.cpp)
+set(SOURCE_FILES main.cpp dict.cpp dict.h)
 add_executable(passwd_checker ${SOURCE_FILES})
 if (WIN32)
 else()

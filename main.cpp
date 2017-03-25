@@ -3,6 +3,8 @@
 
 #ifndef _WIN32_WINNT
 #include "my_conio.h"
+#include "dict.h"
+
 #else
 #include <conio.h>
 #include <windows.h>
@@ -25,12 +27,21 @@ using std::string;
 
 void analyze_password(const string &password);
 
+int word_diff(const string &rh_word, const string &lh_word);
+
 int main() {
     bool ask_pass = true;
 
     _clrscr();
 
     _cputs("Password Checker v. 0.1 loading...\n");
+
+    if (!loadDictionary()) {
+        _cputs("Failed to load dictionary\n");
+        return 1;
+    }
+
+    _cprintf("loaded dictionary: %lu words\n", wordlist.size());
 
     do {
         string passwd = "";
@@ -76,25 +87,10 @@ int main() {
     return 0;
 }
 
-void analyze_password(const string &password) {
-    _cprintf("Password length: %i characters\n", password.length());
+char emptystr[1]={'\0'};
 
-    bool cat_num = false, cat_sym = false, cat_upper = false, cat_lower = false;
-    for(char i : password) {
-        if (isupper(i)) cat_upper = true;
-        else if (islower(i)) cat_lower = true;
-        else if (isdigit(i)) cat_num = true;
-        else cat_sym = true;
-    }
-
-    _cprintf("Password has following character categories:\n\t%s%s%s%s\n",
-            cat_num?"numbers ":"", cat_lower?"lowercase ":"",
-            cat_upper?"uppercase ":"", cat_sym?"symbolic":"");
-
-    double var, pwvars;
-    var = (cat_num?10:0) + (cat_upper?26:0)+(cat_lower?26:0) +(cat_sym?33:0);
-
-    pwvars=pow(var, password.length()) / 2.0e6;
+void print_estimate(int len, double var) {
+    double pwvars = pow(var, len) / 2.0e6;
 
     _cputs("approximate hacking time on one CPU system: ");
     if (pwvars < 60) {
@@ -127,3 +123,75 @@ void analyze_password(const string &password) {
         _cprintf("%lf years\n", (pwvars/(3600UL*24*365)));
     }
 }
+
+bool find_in_dict(const string& word, const string &orig_word, const char *neu = emptystr) {
+    auto st = hasWord(word);
+
+    if (st == wordStatus::Found) {
+        _cprintf("%sDictionary word detected\n", neu);
+        print_estimate(1, word_diff(word, orig_word) * wordlist.size());
+        return true;
+    }
+
+    if (st == wordStatus::FoundWithNumbersBefore) {
+        _cprintf("%sDictionary word with numbers detected\n", neu);
+        print_estimate(1, word_diff(word, orig_word) * 10000 * wordlist.size());
+        return true;
+    }
+
+    if (st == wordStatus::FoundWithNumbersAfter) {
+        _cprintf("%sDictionary word with numbers detected\n", neu);
+        print_estimate(1, word_diff(word, orig_word) * 10000 * wordlist.size());
+        return true;
+    }
+
+    if (st == wordStatus::FoundMultiWord) {
+        _cprintf("2 %sDictionary words detected\n", neu);
+        print_estimate(2, word_diff(word, orig_word) * wordlist.size());
+        return true;
+    }
+
+    return false;
+}
+
+int word_diff(const string &rh_word, const string &lh_word) {
+    int diff = 1;
+    for (int i=0; i<rh_word.size(); ++i) {
+        if (rh_word[i] != lh_word[i]) ++ diff;
+    }
+    return diff;
+}
+
+void analyze_password(const string &password) {
+    _cprintf("Password length: %i characters\n", password.length());
+
+    if (find_in_dict(password, password)) {
+        return;
+    }
+
+    auto passwds = generateWords(password);
+
+    for (auto &passwd: passwds) {
+        if (find_in_dict(passwd, password), "modified ") {
+            return;
+        }
+    }
+
+    bool cat_num = false, cat_sym = false, cat_upper = false, cat_lower = false;
+    for(char i : password) {
+        if (isupper(i)) cat_upper = true;
+        else if (islower(i)) cat_lower = true;
+        else if (isdigit(i)) cat_num = true;
+        else cat_sym = true;
+    }
+
+    _cprintf("Password has following character categories:\n\t%s%s%s%s\n",
+            cat_num?"numbers ":"", cat_lower?"lowercase ":"",
+            cat_upper?"uppercase ":"", cat_sym?"symbolic":"");
+
+    double var;
+    var = (cat_num?10:0) + (cat_upper?26:0)+(cat_lower?26:0) +(cat_sym?33:0);
+
+    print_estimate((int) password.size(), var);
+}
+
