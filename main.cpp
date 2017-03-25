@@ -1,9 +1,8 @@
 #include <string>
 #include <cmath>
-
+#include "dict.h"
 #ifndef _WIN32_WINNT
 #include "my_conio.h"
-#include "dict.h"
 
 #else
 #include <conio.h>
