@@ -23,6 +23,6 @@ extern vector<string> wordlist;
 
 bool loadDictionary();
 vector<string> generateWords(const string &passwd);
-wordStatus hasWord(const string &passwds, wordStatus wst = wordStatus::Found);
+wordStatus hasWord(const string &passwds, wordStatus best_case_status = wordStatus::Found);
 
 #endif //PASSWD_CHECKER_DICT_H

@@ -4,8 +4,11 @@
 #include <map>
 #include <iostream>
 #include <fstream>
-#include <cstdint>
 #include "dict.h"
+
+#ifdef _WIN32_WINNT
+#include <cstdint>
+#endif
 
 using std::map;
 using std::make_pair;
@@ -39,50 +42,106 @@ bool loadDictionary()
     return true;
 }
 
-vector<string> generateWords(const string &passwd)
-{
-    return vector<string>();
+vector<char> getReplaces(char ch) {
+    switch (ch) {
+        case '@':
+        case '4': return vector<char>({'a'});
+        case '!':
+        case '1':
+        case '|': return vector<char>({'i','l'});
+        case '#': return vector<char>({'h'});
+        case '$':
+        case '5': return vector<char>({'s'});
+        case '(': return vector<char>({'c'});
+        case '6':
+        case '8': return vector<char>({'b'});
+        case '3': return vector<char>({'e'});
+        case '7': return vector<char>({'t','z'});
+        case '9': return vector<char>({'g','q'});
+        case '0':
+        case '*': return vector<char>({'o'});
+        default:break;
+    }
+    return vector<char>();
 }
 
-wordStatus hasWord(const string &word, wordStatus prevStatus)
+vector<string> generateWords(const string &passwd)
+{
+    vector<string> variants;
+    string lowcase = passwd;
+    for (auto &ch:lowcase) {
+        if (isalpha(ch)) ch = (char) tolower(ch);
+    }
+    variants.push_back(lowcase);
+
+    string modchars=lowcase;
+    for (size_t i=0; i<modchars.length(); ++i) {
+        auto x = getReplaces(modchars[i]);
+        if (x.size() != 0) {
+            for (long y= (long) (variants.size() - 1); y >= 0; --y) {
+                for (char ch:x) {
+                    variants.emplace_back(variants[y]);
+                    variants.back()[i] = ch;
+                }
+            }
+        }
+    }
+
+    if (variants.front() == passwd) {
+        variants.front() = variants.back();
+        variants.erase(variants.end() - 1);
+    }
+    return variants;
+}
+
+wordStatus hasWord(const string &word, wordStatus best_case_status)
 {
     uint16_t beg = word_to_idx(word.c_str()), end;
     auto pt = index.lower_bound(beg);
-    if (pt == index.end()) return wordStatus::NotFound;
+    auto best_guess = wordStatus ::NotFound;
+    if (pt == index.end()) return best_guess;
     for (unsigned long idx = pt->second; idx < wordlist.size(); ++idx) {
         const string &dword = wordlist[idx];
         end = word_to_idx(dword);
         if (beg != end) break;
-        if (word == dword) return prevStatus;
+        if (word == dword) return best_case_status;
         auto find_idx = word.find(dword);
-        if (prevStatus == wordStatus::Found && find_idx != string::npos) {
-            auto t = hasWord(word.substr(dword.size()), wordStatus::FoundMultiWord);
-            if (t != wordStatus::NotFound) return t;
+        if (best_case_status == wordStatus::Found && find_idx != string::npos) {
+            if (best_guess == wordStatus::NotFound) {
+                auto t = hasWord(word.substr(dword.size()), wordStatus::FoundMultiWord);
+                if (t != wordStatus::NotFound) {
+                    best_guess = wordStatus::FoundMultiWord;
+                    continue;
+                }
+            }
             find_idx = dword.size();
             while (find_idx != word.size()) {
                 if (!isdigit(word[find_idx])) break;
                 ++find_idx;
             }
             if (find_idx == word.size()) {
-                return wordStatus::FoundWithNumbersAfter;
+                best_guess = wordStatus::FoundWithNumbersAfter;
             }
         }
     }
-    if (prevStatus == wordStatus::Found) {
+    if (best_case_status == wordStatus::Found) {
         size_t partIdx = 0;
         while (partIdx < word.size() && isdigit(word[partIdx])) ++partIdx;
         if (partIdx > 0 && partIdx < word.size()) {
             auto secondpart = word.substr(partIdx);
             beg = word_to_idx(secondpart);
             pt = index.lower_bound(beg);
-            if (pt == index.end()) return wordStatus::NotFound;
+            if (pt == index.end()) return best_guess;
             for (unsigned long idx = pt->second; idx < wordlist.size(); ++idx) {
                 const string &dword = wordlist[idx];
                 end = word_to_idx(dword);
                 if (beg != end) break;
-                if (secondpart == dword) return wordStatus::FoundWithNumbersBefore;
+                if (secondpart == dword) {
+                    best_guess = wordStatus::FoundWithNumbersBefore;
+                    break;
+                }
             }
         }
     }
-    return wordStatus::NotFound;
+    return best_guess;
 }

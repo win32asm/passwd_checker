@@ -46,7 +46,7 @@ int main() {
         string passwd = "";
         int sym;
         char ch = 0;
-        _cputs("don`t enter an existing password - use a new one\nenter password>");
+        _cputs("\ndon`t enter an existing password - use a new one\nenter password>");
         do {
             sym = _getch();
             ch = (char) sym;
@@ -88,8 +88,8 @@ int main() {
 
 char emptystr[1]={'\0'};
 
-void print_estimate(int len, double var) {
-    double pwvars = pow(var, len) / 2.0e6;
+void print_estimate(int len, double variants, size_t nDigits = 0) {
+    double pwvars = ( pow(variants, len) * pow(10, nDigits) ) / 2.0e6;
 
     _cputs("approximate hacking time on one CPU system: ");
     if (pwvars < 60) {
@@ -134,13 +134,17 @@ bool find_in_dict(const string& word, const string &orig_word, const char *neu =
 
     if (st == wordStatus::FoundWithNumbersBefore) {
         _cprintf("%sDictionary word with numbers detected\n", neu);
-        print_estimate(1, word_diff(word, orig_word) * 10000 * wordlist.size());
+        size_t i=0;
+        while(isdigit(word[i])) ++i;
+        print_estimate(1, word_diff(word, orig_word) * wordlist.size(), i-1);
         return true;
     }
 
     if (st == wordStatus::FoundWithNumbersAfter) {
         _cprintf("%sDictionary word with numbers detected\n", neu);
-        print_estimate(1, word_diff(word, orig_word) * 10000 * wordlist.size());
+        size_t i= word.length() - 1;
+        while (isdigit(word[i])) --i;
+        print_estimate(1, word_diff(word, orig_word) * wordlist.size(), word.length() - i - 1);
         return true;
     }
 
@@ -171,7 +175,7 @@ void analyze_password(const string &password) {
     auto passwds = generateWords(password);
 
     for (auto &passwd: passwds) {
-        if (find_in_dict(passwd, password), "modified ") {
+        if (find_in_dict(passwd, password, "modified ")) {
             return;
         }
     }
