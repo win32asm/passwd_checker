@@ -31,8 +31,9 @@ bool loadDictionary()
     if (word_file.fail()) return false;
 
     while (! word_file.fail() && ! word_file.eof()) {
-        wordlist.emplace_back();
-        word_file >> wordlist.back();
+        char buffer[128];
+        word_file.getline(buffer, 128);
+        wordlist.emplace_back(buffer);
         nextch = word_to_idx(wordlist.back());
         if (nextch != firstch) {
             firstch = nextch;
