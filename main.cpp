@@ -154,6 +154,12 @@ bool find_in_dict(const string& word, const string &orig_word, const char *neu =
         return true;
     }
 
+    if (st == wordStatus::FoundSpaceMultiWord) {
+        _cprintf("2 space-delimited %sDictionary words detected\n", neu);
+        print_estimate(2, 2*word_diff(word, orig_word) * wordlist.size());
+        return true;
+    }
+
     return false;
 }
 

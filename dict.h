@@ -15,6 +15,7 @@ enum class wordStatus {
     NotFound,
     Found,
     FoundMultiWord,
+    FoundSpaceMultiWord,
     FoundWithNumbersBefore,
     FoundWithNumbersAfter,
 };

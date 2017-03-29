@@ -6,10 +6,6 @@
 #include <fstream>
 #include "dict.h"
 
-#ifdef _WIN32_WINNT
-#include <cstdint>
-#endif
-
 using std::map;
 using std::make_pair;
 using std::ifstream;
@@ -109,10 +105,17 @@ wordStatus hasWord(const string &word, wordStatus best_case_status)
         auto find_idx = word.find(dword);
         if (best_case_status == wordStatus::Found && find_idx != string::npos) {
             if (best_guess == wordStatus::NotFound) {
-                auto t = hasWord(word.substr(dword.size()), wordStatus::FoundMultiWord);
+                auto t = hasWord(word.substr(dword.length()), wordStatus::FoundMultiWord);
                 if (t != wordStatus::NotFound) {
                     best_guess = wordStatus::FoundMultiWord;
                     continue;
+                }
+                if (word[dword.length()] == ' ') {
+                    t = hasWord(word.substr(dword.length()+1), wordStatus::FoundMultiWord);
+                    if (t != wordStatus::NotFound) {
+                        best_guess = wordStatus::FoundSpaceMultiWord;
+                        continue;
+                    }
                 }
             }
             find_idx = dword.size();
